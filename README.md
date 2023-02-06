@@ -60,7 +60,7 @@ android {
     }
 }
 ```
-> Notice the different formats of the language tags below. They're not _quite_ Unicode tags, but it's okay. Android recognizes bothe the `xx-rXX` and `bxx+XX+` formats ([more info on locale resolution here](https://developer.android.com/guide/topics/resources/multilingual-support#postN)). This is important to know since some language tags like `de-DE` would cause a build failure and the `b+` format is required. In any case, the plugin converts everything to Unicode-friendly tags since that what we need in the manifest and source code anyway.
+> Notice the different formats of the language tags below. They're not _quite_ Unicode tags, but it's okay. Android recognizes both the `xx-rXX` and `bxx+XX+` formats ([more info on locale resolution here](https://developer.android.com/guide/topics/resources/multilingual-support#postN)). This is important to know since some language tags like `de-DE` would cause a build failure and the `b+` format is required. ([BCP-47 spec](https://cldr.unicode.org/development/development-process/design-proposals/bcp47-syntax-mapping)) In any case, the plugin converts everything to Unicode-friendly tags since that what we need in the manifest and source code anyway.
 
 ```xml
 <!-- AndroidManifest.xml -->
