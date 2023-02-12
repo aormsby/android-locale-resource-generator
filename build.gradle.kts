@@ -15,10 +15,6 @@ repositories {
     google()
 }
 
-// TODO: figure out - can i provide these dependencies without forcing the consuming project
-//  to reference the required repositories - google()/mavenCentral()?
-//  (probably not, but revisit this after publishing to gradle plugin portal)
-
 dependencies {
     implementation("com.android.tools.build:gradle:7.4.0")
     implementation("org.redundent:kotlin-xml-builder:1.8.0")
@@ -45,7 +41,7 @@ gradlePlugin {
 }
 
 pluginBundle {
-    // TODO: update with mermake site page when ready (date very much tbd)
+    // TODO: update with mermake group info when available (date very much tbd)
     website = "https://adamormsby.com"
     vcsUrl = "https://github.com/aormsby/android-locale-resource-generator"
     tags = listOf("android", "android 13", "localization", "locale config", "language support", "automation")
