@@ -25,18 +25,18 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
         val supportedLanguageTags = resourceConfigInput.getOrElse(setOf())
             .convertToUnicodeLanguageTags()
             .stripInvalidLanguageTags()
-            .map { it.plusEndonym() }
+            .map { it.withEndonym() }
             .toSet()
 
         languageTagListOutput.get().asFile.writeText(
             supportedLanguageTags.joinToString("\n")
         )
 
-        logger.info("Valid supported locales output to ${languageTagListOutput.get()}")
+        logger.lifecycle("Valid supported locales output to ${languageTagListOutput.get()}")
     }
 
     /**
-     * Converts all language tags to Unicode-friendly tags that work more consistently with the java [Locale] class.
+     * Converts all language tags to Unicode-friendly tags that work more consistently with the Java [Locale] class.
      */
     private fun Set<String>.convertToUnicodeLanguageTags(): List<String> =
         map { tag ->
@@ -91,7 +91,7 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
     /**
      * @return language tag with endonym, comma-separated
      */
-    private fun String.plusEndonym(): String {
+    private fun String.withEndonym(): String {
         val locale = Locale.forLanguageTag(this)
         return "$this,${locale.getDisplayName(locale)}"
     }

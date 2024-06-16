@@ -29,35 +29,49 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
 
     @TaskAction
     fun taskAction() {
-        val outputClassName = "SupportedLocales"
+        val supportedLanguageSets = languageListInput.get().asFile.readLines().map { it.split(',') }.toSet()
+        val supportedLanguageTags = supportedLanguageSets.map { it.first() }
 
-        val languageSets = languageListInput.get().asFile.readLines().map { it.split(',') }.toSet()
-        val languageTags = languageSets.map { it.first() }
-        val localeMap = languageTags.map { Locale.forLanguageTag(it) }
+        val outputClass = "SupportedLocales"
+        val fileSpec = outputClass.fileSpecBuilder(supportedLanguageSets, supportedLanguageTags)
 
-        val tagsList = tagsList(languageTags)
-        val endonymsMap = endonymsMap(languageSets)
-        val exonymsMaps = exonymsMaps(localeMap)
-        val tagsFunc = tagsFunc(tagsList)
-        val endonymsFunc = endonymsFunc(endonymsMap)
-        val errorNotFoundString = errorNotFoundString()
-        val exonymsFromTagFunc = exonymsFromTagFunc(exonymsMaps, errorNotFoundString)
-        val exonymsFromLocaleFunc = exonymsFromLocaleFunc(exonymsMaps, errorNotFoundString)
+        fileSpec.writeTo(outputDir.get().asFile)
+        logger.lifecycle("$outputClass.kt output to ${outputDir.get().asFile}")
+    }
 
-        val fileSpec = FileSpec.builder(packageName.get(), outputClassName)
+    private fun String.fileSpecBuilder(
+        supportedLanguageSets: Set<List<String>>,
+        supportedLanguageTags: List<String>,
+    ): FileSpec {
+        val classKdoc =
+            """Generated class containing the locales supported by your project in the form of list and maps.
+            |Language tags and their corresponding names (endonyms and exonyms) are retrievable through public functions.
+            """.trimMargin()
+
+        // private property/func builders
+        val localeList = buildLocaleList(supportedLanguageTags)
+        val tagsList = buildTagsList(supportedLanguageTags)
+        val endonymsMap = buildEndonymsMap(supportedLanguageSets)
+        val exonymsMap = buildExonymsMap(localeList)
+        val errorTagNotFoundMessage = buildErrorTagNotFound()
+
+        // public func builders
+        val tagsFunc = buildTagsAccessor(tagsList)
+        val endonymsFunc = buildEndonymsAccessor(endonymsMap)
+        val exonymsFromTagFunc = buildExonymsFromTagAccessor(exonymsMap, errorTagNotFoundMessage)
+        val exonymsFromLocaleFunc = buildExonymsFromLocaleAccessor(exonymsMap, errorTagNotFoundMessage)
+
+        // build and return file contents
+        return FileSpec.builder(packageName.get(), this)
             .addType(
-                TypeSpec.classBuilder(outputClassName)
-                    .addKdoc(
-                        """Generated class containing the locales supported by your project in the form of list and maps.
-                        |Language tags and their corresponding names (endonyms and exonyms) are retrievable through public functions.
-                    """.trimMargin()
-                    )
+                TypeSpec.classBuilder(this)
+                    .addKdoc(classKdoc)
                     .addProperties(
                         listOf(
                             tagsList,
                             endonymsMap,
-                            exonymsMaps,
-                            errorNotFoundString
+                            exonymsMap,
+                            errorTagNotFoundMessage
                         )
                     ).addFunctions(
                         listOf(
@@ -68,12 +82,12 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
                         )
                     ).build()
             ).build()
-
-        fileSpec.writeTo(outputDir.get().asFile)
-        logger.info("$outputClassName.kt output to ${outputDir.get().asFile}")
     }
 
-    private fun tagsList(languageTags: List<String>) =
+    private fun buildLocaleList(supportedLanguageTags: List<String>) =
+        supportedLanguageTags.map { Locale.forLanguageTag(it) }
+
+    private fun buildTagsList(languageTags: List<String>) =
         PropertySpec.builder(
             name = "tags",
             type = List::class.parameterizedBy(String::class)
@@ -84,7 +98,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             KModifier.PRIVATE
         ).build()
 
-    private fun endonymsMap(languageSets: Set<List<String>>) =
+    private fun buildEndonymsMap(languageSets: Set<List<String>>) =
         PropertySpec.builder(
             name = "endonyms",
             type = Map::class.parameterizedBy(String::class, String::class)
@@ -97,7 +111,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             KModifier.PRIVATE
         ).build()
 
-    private fun exonymsMaps(locales: List<Locale>) =
+    private fun buildExonymsMap(locales: List<Locale>) =
         PropertySpec.builder(
             name = "exonyms",
             type = Map::class.asClassName()
@@ -122,13 +136,13 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             }\n)"
         }.joinToString(",\n")
 
-    private fun tagsFunc(property: PropertySpec) =
+    private fun buildTagsAccessor(property: PropertySpec) =
         FunSpec.builder("getTags")
             .addKdoc("@returns List of language tags supported by your project.")
             .addStatement("return %N", property)
             .build()
 
-    private fun endonymsFunc(property: PropertySpec) =
+    private fun buildEndonymsAccessor(property: PropertySpec) =
         FunSpec.builder("getEndonyms")
             .addKdoc(
                 """@returns Map of language tags and their written endoynms.
@@ -138,7 +152,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             .addStatement("return %N", property)
             .build()
 
-    private fun exonymsFromTagFunc(property: PropertySpec, error: PropertySpec): FunSpec {
+    private fun buildExonymsFromTagAccessor(property: PropertySpec, error: PropertySpec): FunSpec {
         val langTagParam = ParameterSpec.builder("languageTag", String::class)
             .build()
 
@@ -154,7 +168,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             .build()
     }
 
-    private fun exonymsFromLocaleFunc(property: PropertySpec, error: PropertySpec): FunSpec {
+    private fun buildExonymsFromLocaleAccessor(property: PropertySpec, error: PropertySpec): FunSpec {
         val localeParam = ParameterSpec.builder("locale", Locale::class)
             .build()
 
@@ -170,7 +184,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             .build()
     }
 
-    private fun errorNotFoundString() =
+    private fun buildErrorTagNotFound() =
         PropertySpec
             .builder(name = "errorTagNotFound", type = NoSuchElementException::class)
             .initializer(

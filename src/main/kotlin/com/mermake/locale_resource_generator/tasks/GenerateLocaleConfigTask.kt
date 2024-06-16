@@ -23,28 +23,32 @@ abstract class GenerateLocaleConfigTask : DefaultTask() {
 
     @TaskAction
     fun taskAction() {
-        val langList = languageListInput.get().asFile.reader()
-
-        val xml = xml("locale-config") {
-            globalProcessingInstruction("xml", "version" to "1.0", "encoding" to "utf-8")
-
-            val namespace = Namespace("android", "http://schemas.android.com/apk/res/android")
-            namespace(namespace)
-
-            langList.forEachLine {
-                val line = it.split(',')
-
-                comment(line.last())
-                element("locale") {
-                    attribute("name", line.first(), namespace)
-                }
-            }
-        }
+        val languageList = languageListInput.get().asFile.readLines()
+        val xmlContent = buildXmlContent(languageList)
 
         localeConfigOutput.get().asFile.writeText(
-            xml.toString(PrintOptions(pretty = true, singleLineTextElements = true))
+            xmlContent.toString(PrintOptions(pretty = true, singleLineTextElements = true))
         )
 
-        logger.info("`locale_config.xml` output to ${localeConfigOutput.get()}")
+        logger.lifecycle("`locale_config.xml` output to ${localeConfigOutput.get()}")
+    }
+
+    /**
+     * Generate content of `locale_config.xml` file using supported languages list
+     */
+    private fun buildXmlContent(languageList: List<String>) = xml("locale-config") {
+        globalProcessingInstruction("xml", "version" to "1.0", "encoding" to "utf-8")
+
+        val namespace = Namespace("android", "http://schemas.android.com/apk/res/android")
+        namespace(namespace)
+
+        languageList.forEach { line ->
+            val parts = line.split(',')
+
+            comment(parts.last())
+            element("locale") {
+                attribute("name", parts.first(), namespace)
+            }
+        }
     }
 }
