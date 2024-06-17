@@ -32,6 +32,8 @@ private fun ApplicationAndroidComponentsExtension.configure(project: Project) {
     val resourceOutputDir = project.layout.buildDirectory.dir("generated/res/locale_resources")
     var rawResourceConfig = mutableSetOf<String>()
 
+    // todo: revisit this after AGP upgrade
+    @Suppress("UnstableApiUsage")
     finalizeDsl { extension ->
         rawResourceConfig = extension.defaultConfig.resourceConfigurations.toMutableSet()
     }

@@ -49,40 +49,75 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
      * Checks the validity of each found resource tag
      * @return Only resource configurations that are language tags
      */
-    private fun List<String>.stripInvalidLanguageTags(): List<String> =
-        filter { it.isIsoValid() }
+    private fun List<String>.stripInvalidLanguageTags(): List<String> {
+        val isoLanguages = Locale.getISOLanguages()
+        val isoRegions = Locale.getISOCountries()
+
+        val isoScripts = Locale.getAvailableLocales().mapNotNull {
+            it.script.takeIf { s -> s.isNotBlank() }
+        }.toSet()
+
+        return filter {
+            it.isNotBlank() && it.isIsoValid(isoLanguages, isoRegions, isoScripts)
+        }
+    }
 
     /**
-     * @return True/false if the provided tag is ISO valid for languages
+     * @return T/F if provided tag is supported by Java.Locale (BCP-47 spec).
+     * Takes into account the possibility that the provided language tag may have
+     * 1, 2, or 3 sub-tags and checks validity one at a time.
      *
-     * Example - 'fr-FR' is a language tag and is valid
+     * Example - 'fr-FR' is valid
+     *
+     * Example - 'sr-Latn' is valid
      *
      * Example - 'sw320dp' is a screen dimension tag and is not valid
      */
-    private fun String.isIsoValid(): Boolean {
-        // prevents stripping of pseudo-locales
+    private fun String.isIsoValid(
+        isoLanguages: Array<String>,
+        isoRegions: Array<String>,
+        isoScripts: Set<String>
+    ): Boolean {
+        // prevent stripping of pseudo-locales
         if (this == "en-XA" || this == "ar-XB")
             return true
 
         val parts = split('-')
-        val one = parts.getOrNull(0)
+        val one = parts.first()
         val two = parts.getOrNull(1)
         val three = parts.getOrNull(2)
 
-        one?.let {
-            if (it !in Locale.getISOLanguages())
-                return false
+        // supported language tag expected, required
+        if (one !in isoLanguages) {
+            logger.warn("$one from '$this' not found in supported ISO languages")
+            return false
         }
 
+        // supported region or script tag expected, optional
         two?.let {
-            if ((it.length != 4) &&
-                (it !in Locale.getISOCountries())
-            ) return false
+            when {
+                it.length == 4 && it !in isoScripts -> {
+                    logger.warn("\'$it\' from '$this' not found in supported ISO scripts")
+                    return false
+                }
+
+                it.length != 4 && it !in isoRegions -> {
+                    logger.warn("\'$it\' from '$this' not found in supported ISO regions")
+                    return false
+                }
+
+                else -> {
+                    /* no-op */
+                }
+            }
         }
 
+        // supported region tag expected, optional
         three?.let {
-            if (it !in Locale.getISOCountries())
+            if (it !in isoRegions) {
+                logger.warn("\'$it\' from '$this' not found in supported ISO regions")
                 return false
+            }
         }
 
         return true
