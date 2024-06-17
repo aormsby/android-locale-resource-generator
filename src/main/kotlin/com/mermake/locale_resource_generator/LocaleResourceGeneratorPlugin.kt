@@ -13,6 +13,7 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 
+@Suppress("Unused")
 class LocaleResourceGeneratorPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.plugins.withType<AppPlugin> {
