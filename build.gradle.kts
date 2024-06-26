@@ -5,6 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.1.0"
     `kotlin-dsl`    // gradle kotlin dsl, syntax allows gradle to manage version for compatibility
     signing         // gradle signing plugin
+    groovy          // for testing with Spock
 }
 
 repositories {
@@ -18,11 +19,19 @@ dependencies {
     implementation("com.squareup:kotlinpoet:1.12.0") {
         exclude(module = "kotlin-reflect")
     }
+
+    testImplementation(platform("org.spockframework:spock-bom:2.3-groovy-3.0"))
+    testImplementation("org.spockframework:spock-core")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.apiVersion = "1.7"
     kotlinOptions.jvmTarget = "11"
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 group = "com.mermake"
