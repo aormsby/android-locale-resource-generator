@@ -1,5 +1,5 @@
 Output of `Locale.getAvailableLocales().map { it.toLanguageTag() }`, all BCP-47 locales.
-Note that Android supports only a subset of BCP-47. (details tbd)
+Note that Android supports only a subset of BCP-47. See adjacent file `android_locales.txt`.
 
 result = {ArrayList@26132}  size = 807
  0 = "af"

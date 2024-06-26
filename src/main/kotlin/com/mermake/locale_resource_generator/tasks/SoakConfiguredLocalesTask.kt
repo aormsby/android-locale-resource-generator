@@ -22,11 +22,14 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
 
     @TaskAction
     fun taskAction() {
-        val supportedLanguageTags = resourceConfigInput.getOrElse(setOf())
-            .convertToUnicodeLanguageTags()
-            .stripInvalidLanguageTags()
-            .map { it.withEndonym() }
-            .toSet()
+        val supportedLanguageTags =
+            resourceConfigInput
+                .getOrElse(setOf())
+                .convertToUnicodeLanguageTags()
+                .stripInvalidLanguageTags()
+                .map { it.withEndonym() }
+                .distinct()
+                .sorted()
 
         languageTagListOutput.get().asFile.writeText(
             supportedLanguageTags.joinToString("\n")
@@ -55,7 +58,7 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
 
         val isoScripts = Locale.getAvailableLocales().mapNotNull {
             it.script.takeIf { s -> s.isNotBlank() }
-        }.toSet()
+        }.distinct()
 
         return filter {
             it.isNotBlank() && it.isIsoValid(isoLanguages, isoRegions, isoScripts)
@@ -76,11 +79,13 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
     private fun String.isIsoValid(
         isoLanguages: Array<String>,
         isoRegions: Array<String>,
-        isoScripts: Set<String>
+        isoScripts: List<String>
     ): Boolean {
         // prevent stripping of pseudo-locales
-        if (this == "en-XA" || this == "ar-XB")
-            return true
+        with(takeLast(2)) {
+            if (this == "XA" || this == "XB")
+                return true
+        }
 
         val parts = split('-')
         val one = parts.first()
