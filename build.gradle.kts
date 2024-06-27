@@ -15,8 +15,8 @@ repositories {
 
 dependencies {
     implementation("com.android.tools.build:gradle:7.4.0")
-    implementation("org.redundent:kotlin-xml-builder:1.8.0")
-    implementation("com.squareup:kotlinpoet:1.12.0") {
+    implementation("org.redundent:kotlin-xml-builder:1.8.0")    // todo: 1.9.0
+    implementation("com.squareup:kotlinpoet:1.12.0") {  // todo: 1.17.0
         exclude(module = "kotlin-reflect")
     }
 
@@ -27,7 +27,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.apiVersion = "1.7"
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "11"  //  todo: test java 8 for broader backwards compatibility
 }
 
 tasks.withType<Test>().configureEach {

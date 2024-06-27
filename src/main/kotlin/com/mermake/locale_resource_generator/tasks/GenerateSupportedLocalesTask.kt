@@ -48,6 +48,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
             |Language tags and their corresponding names (endonyms and exonyms) are retrievable through public functions.
             """.trimMargin()
 
+        // todo: v1.1 fix 'method too long' issue and reduce passes over tags to build these items
         // private property/func builders
         val localeList = buildLocaleList(supportedLanguageTags)
         val tagsList = buildTagsList(supportedLanguageTags)

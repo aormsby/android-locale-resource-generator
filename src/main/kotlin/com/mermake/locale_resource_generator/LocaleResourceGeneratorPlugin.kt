@@ -43,6 +43,7 @@ private fun ApplicationAndroidComponentsExtension.configure(project: Project) {
         // prevents variants overwriting stored config data
         var variantResourceConfig = rawResourceConfig.toMutableSet()
 
+        // todo: try updating to add pseudolocales, not subtract them (v0.3 with config block options)
         // Step 1 - if pseudo-locales disabled for variant, remove from 'resourceConfig' set
         if (!variant.pseudoLocalesEnabled.getOrElse(false)) {
             variantResourceConfig = variantResourceConfig.subtract(setOf("en-rXA", "ar-rXB")).toMutableSet()
