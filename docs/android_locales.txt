@@ -97,3 +97,6 @@ lt
 lt-rLT
 lv
 lv-rLV
+zh
+zh-CN
+zh-rTW

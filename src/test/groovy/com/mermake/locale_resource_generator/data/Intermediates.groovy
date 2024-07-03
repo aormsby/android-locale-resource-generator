@@ -57,6 +57,7 @@ class Intermediates {
             "de-LI,Deutsch (Liechtenstein)",
             "el,Ελληνικά",
             "el-GR,Ελληνικά (Ελλάδα)",
+            "en,English",
             "en-AU,English (Australia)",
             "en-CA,English (Canada)",
             "en-GB,English (United Kingdom)",

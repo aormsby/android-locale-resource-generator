@@ -80,6 +80,8 @@ class Xml {
             '<locale android:name="el"/>',
             '<!-- Ελληνικά (Ελλάδα) -->',
             '<locale android:name="el-GR"/>',
+            '<!-- English -->',
+            '<locale android:name="en"/>',
             '<!-- English (Australia) -->',
             '<locale android:name="en-AU"/>',
             '<!-- English (Canada) -->',

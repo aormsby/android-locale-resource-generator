@@ -44,7 +44,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
         supportedLanguageTags: List<String>,
     ): FileSpec {
         val classKdoc =
-            """Generated class containing the locales supported by your project in the form of list and maps.
+            """Generated class containing the locales configured in project in the form of list and maps.
             |Language tags and their corresponding names (endonyms and exonyms) are retrievable through public functions.
             """.trimMargin()
 
@@ -139,7 +139,7 @@ abstract class GenerateSupportedLocalesTask : DefaultTask() {
 
     private fun buildTagsAccessor(property: PropertySpec) =
         FunSpec.builder("getTags")
-            .addKdoc("@returns List of language tags supported by your project.")
+            .addKdoc("@returns List of language tags configured in your project.")
             .addStatement("return %N", property)
             .build()
 
