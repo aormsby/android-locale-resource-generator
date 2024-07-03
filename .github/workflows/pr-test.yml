@@ -1,0 +1,29 @@
+name: Required PR Tests
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  run-pr-tests:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 7.5
+
+      # Download/cache JDK
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Check out plugin repo
+        uses: actions/checkout@v4
+
+      - name: Build and run tests
+        run: ./gradlew build
