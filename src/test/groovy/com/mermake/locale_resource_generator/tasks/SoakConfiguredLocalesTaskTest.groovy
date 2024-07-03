@@ -22,7 +22,7 @@ class SoakConfiguredLocalesTaskTest extends Specification {
         task.languageTagListOutput.set(outputFile)
     }
 
-    def "process input locales, output intermediate"(Set<String> input) {
+    def "process input locales, output intermediate"(Set<String> input, String[] output) {
         given: "set of language tags"
         task.resourceConfigInput.set(input)
 

@@ -2,7 +2,7 @@ package com.mermake.locale_resource_generator
 
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.internal.plugins.AppPlugin
+import com.android.build.gradle.AppPlugin
 import com.mermake.locale_resource_generator.tasks.GenerateLocaleConfigTask
 import com.mermake.locale_resource_generator.tasks.GenerateSupportedLocalesTask
 import com.mermake.locale_resource_generator.tasks.SoakConfiguredLocalesTask
@@ -23,6 +23,7 @@ class LocaleResourceGeneratorPlugin : Plugin<Project> {
     }
 }
 
+// todo: v0.2 consider rewrite as function of plugin since extending extension isn't really necessary
 private fun ApplicationAndroidComponentsExtension.configure(project: Project) {
     // it seems odd to get this extension, but I don't know another way to update the source sets at this time
     val appExtension = project.extensions.getByType<AppExtension>()

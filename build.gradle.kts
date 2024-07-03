@@ -20,6 +20,7 @@ dependencies {
         exclude(module = "kotlin-reflect")
     }
 
+    testImplementation(gradleTestKit())
     testImplementation(platform("org.spockframework:spock-bom:2.3-groovy-3.0"))
     testImplementation("org.spockframework:spock-core")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
