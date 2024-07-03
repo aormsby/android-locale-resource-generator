@@ -1,6 +1,13 @@
 package com.mermake.locale_resource_generator.data
 
 class Intermediates {
+    static File createFile(String[] input) {
+        File tempFile = File.createTempFile("test_tags", "txt")
+        tempFile.deleteOnExit()
+        tempFile.write(input.join("\n"))
+        return tempFile
+    }
+
     static String[] pseudolocales = [
             "ar-XB,العربية (لكنات تجريبية ثنائية الاتجاه)",
             "en-XA,English (Pseudo-Accents)",

@@ -26,7 +26,7 @@ class GenerateSupportedLocalesTaskTest extends Specification {
 
     def "process locales, verify properties and functions"() {
         given: "temp intermediate local tags file"
-        task.languageListInput.set(createIntermediateFile(Intermediates.smallBatch))
+        task.languageListInput.set(Intermediates.createFile(Intermediates.smallBatch))
 
         when: "task executed"
         File outputFile = runActionAndGetOutput()
@@ -39,7 +39,7 @@ class GenerateSupportedLocalesTaskTest extends Specification {
 
     def "process locales, verify invoked function results"(String[] input, String[] testArgs, Object[] output) {
         given: "temp intermediate local tags file"
-        task.languageListInput.set(createIntermediateFile(input))
+        task.languageListInput.set(Intermediates.createFile(input))
 
         when: "task is executed, class is instantiated"
         File outputFile = runActionAndGetOutput()
@@ -54,15 +54,15 @@ class GenerateSupportedLocalesTaskTest extends Specification {
         }
 
         where:
-        input                    | testArgs        | output
-        Intermediates.smallBatch | Tags.smallBatch | [Tags.smallBatch, Compiled.endonymsSmallBatch, Compiled.exonymsSmallBatch]
+        input                    | testArgs        || output
+        Intermediates.smallBatch | Tags.smallBatch || [Tags.smallBatch, Compiled.endonymsSmallBatch, Compiled.exonymsSmallBatch]
         // todo: implement after v1.1 fix for 'huge' map
 //        Intermediates.androidSupported | Tags.androidSupported | [Tags.androidSupported, Compiled.endonymsAndroidSupported, Compiled.exonymsAndroidSupported]
     }
 
     def "process locales, verify invoked function failures"() {
         given: "temp intermediate local tags file"
-        task.languageListInput.set(createIntermediateFile(Intermediates.smallBatch))
+        task.languageListInput.set(Intermediates.createFile(Intermediates.smallBatch))
 
         when: "task is executed, class is instantiated"
         File outputFile = runActionAndGetOutput()
@@ -79,13 +79,6 @@ class GenerateSupportedLocalesTaskTest extends Specification {
 
         then: "exception thrown"
         thrown(NoSuchElementException)
-    }
-
-    private File createIntermediateFile(String[] input) {
-        File tempFile = File.createTempFile("test_tags", "txt")
-        tempFile.deleteOnExit()
-        tempFile.write(input.join("\n"))
-        return tempFile
     }
 
     private File runActionAndGetOutput() {

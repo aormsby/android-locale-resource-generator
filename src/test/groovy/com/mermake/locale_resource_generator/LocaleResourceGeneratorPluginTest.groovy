@@ -39,9 +39,9 @@ class LocaleResourceGeneratorPluginTest extends Specification {
         }
 
         where:
-        variant   | expectedTasks
-        "Debug"   | taskList("Debug")
-        "Release" | taskList("Release")
+        variant   || expectedTasks
+        "Debug"   || taskList("Debug")
+        "Release" || taskList("Release")
     }
 
     private def taskList(String variant) {
