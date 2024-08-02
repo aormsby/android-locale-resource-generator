@@ -11,8 +11,8 @@ Built with Android Gradle Plugin (AGP) 7.5.0
 
 ## Community and Docs
 
-- [Wiki](../../wiki) for more details on language tag support and configuration
-- [Discussions](../../discussions) for project roadmap, enhancement ideas, and sharing uses
+- [Wiki](../../wiki) for more details on language tag support and plugin configuration
+- [Discussions](../../discussions) for project roadmap, ideas, Q&A, and polls
 - [Issues](../../issues) for found bugs and reporting specific locale issues
 
 ## Setup
