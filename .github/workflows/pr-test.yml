@@ -11,5 +11,17 @@ jobs:
       # Check out repo under $GITHUB_WORKSPACE
       - uses: actions/checkout@v4
 
+      # Download and configure gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      
+      # Download/cache JDK
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+          
+      # Build and run tests
       - name: build plugin
         run: ./gradlew build
