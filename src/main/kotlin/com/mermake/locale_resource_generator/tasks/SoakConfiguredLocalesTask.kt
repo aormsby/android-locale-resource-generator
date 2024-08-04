@@ -22,21 +22,24 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
 
     @TaskAction
     fun taskAction() {
-        val supportedLanguageTags = resourceConfigInput.getOrElse(setOf())
-            .convertToUnicodeLanguageTags()
-            .stripInvalidLanguageTags()
-            .map { it.plusEndonym() }
-            .toSet()
+        val supportedLanguageTags =
+            resourceConfigInput
+                .getOrElse(setOf())
+                .convertToUnicodeLanguageTags()
+                .stripInvalidLanguageTags()
+                .map { it.withEndonym() }
+                .distinct()
+                .sorted()
 
         languageTagListOutput.get().asFile.writeText(
             supportedLanguageTags.joinToString("\n")
         )
 
-        logger.info("Valid supported locales output to ${languageTagListOutput.get()}")
+        logger.lifecycle("Valid supported locales output to ${languageTagListOutput.get()}")
     }
 
     /**
-     * Converts all language tags to Unicode-friendly tags that work more consistently with the java [Locale] class.
+     * Converts all language tags to Unicode-friendly tags that work more consistently with the Java [Locale] class.
      */
     private fun Set<String>.convertToUnicodeLanguageTags(): List<String> =
         map { tag ->
@@ -49,40 +52,77 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
      * Checks the validity of each found resource tag
      * @return Only resource configurations that are language tags
      */
-    private fun List<String>.stripInvalidLanguageTags(): List<String> =
-        filter { it.isIsoValid() }
+    private fun List<String>.stripInvalidLanguageTags(): List<String> {
+        val isoLanguages = Locale.getISOLanguages()
+        val isoRegions = Locale.getISOCountries()
+
+        val isoScripts = Locale.getAvailableLocales().mapNotNull {
+            it.script.takeIf { s -> s.isNotBlank() }
+        }.distinct()
+
+        return filter {
+            it.isNotBlank() && it.isIsoValid(isoLanguages, isoRegions, isoScripts)
+        }
+    }
 
     /**
-     * @return True/false if the provided tag is ISO valid for languages
+     * @return T/F if provided tag is supported by Java.Locale (BCP-47 spec).
+     * Takes into account the possibility that the provided language tag may have
+     * 1, 2, or 3 sub-tags and checks validity one at a time.
      *
-     * Example - 'fr-FR' is a language tag and is valid
+     * Example - 'fr-FR' is valid
+     *
+     * Example - 'sr-Latn' is valid
      *
      * Example - 'sw320dp' is a screen dimension tag and is not valid
      */
-    private fun String.isIsoValid(): Boolean {
-        // prevents stripping of pseudo-locales
-        if (this == "en-XA" || this == "ar-XB")
-            return true
+    private fun String.isIsoValid(
+        isoLanguages: Array<String>,
+        isoRegions: Array<String>,
+        isoScripts: List<String>
+    ): Boolean {
+        // prevent stripping of pseudo-locales
+        with(takeLast(2)) {
+            if (this == "XA" || this == "XB")
+                return true
+        }
 
         val parts = split('-')
-        val one = parts.getOrNull(0)
+        val one = parts.first()
         val two = parts.getOrNull(1)
         val three = parts.getOrNull(2)
 
-        one?.let {
-            if (it !in Locale.getISOLanguages())
-                return false
+        // supported language tag expected, required
+        if (one !in isoLanguages) {
+            logger.warn("$one from '$this' not found in supported ISO languages")
+            return false
         }
 
+        // supported region or script tag expected, optional
         two?.let {
-            if ((it.length != 4) &&
-                (it !in Locale.getISOCountries())
-            ) return false
+            when {
+                it.length == 4 && it !in isoScripts -> {
+                    logger.warn("\'$it\' from '$this' not found in supported ISO scripts")
+                    return false
+                }
+
+                it.length != 4 && it !in isoRegions -> {
+                    logger.warn("\'$it\' from '$this' not found in supported ISO regions")
+                    return false
+                }
+
+                else -> {
+                    /* no-op */
+                }
+            }
         }
 
+        // supported region tag expected, optional
         three?.let {
-            if (it !in Locale.getISOCountries())
+            if (it !in isoRegions) {
+                logger.warn("\'$it\' from '$this' not found in supported ISO regions")
                 return false
+            }
         }
 
         return true
@@ -91,7 +131,7 @@ abstract class SoakConfiguredLocalesTask : DefaultTask() {
     /**
      * @return language tag with endonym, comma-separated
      */
-    private fun String.plusEndonym(): String {
+    private fun String.withEndonym(): String {
         val locale = Locale.forLanguageTag(this)
         return "$this,${locale.getDisplayName(locale)}"
     }

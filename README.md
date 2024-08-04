@@ -1,24 +1,29 @@
 # Android Locale Resource Generator
 
 A Gradle plugin for Android projects to automate locale configuration and provide supporting source/resource files.
-Built with Android Gradle Plugin (AGP) 7.4.0
+Built with Android Gradle Plugin (AGP) 7.5.0
 
-## Primary Function
+## Functionality
 
-This plugin was built mostly to generate `locale-config.xml` file to support [per-app language settings](https://developer.android.com/guide/topics/resources/app-languages) for Android API 33+. Instead of remembering to modify files each time you add support for a locale, you just add the locale _once_ into your build.gradle file and let this plugin generate the xml resources you need for locale support.
+- Generates `locale-config.xml` file for Android [per-app language settings](https://developer.android.com/guide/topics/resources/app-languages)
+- Generates `SupportedLocales` Kotlin class for in-app access to your configured locales
+- Includes pseudolocale support when pseudolocales enabled for build variant
 
-**Bonus:** The plugin automatically includes pseudolocale options if you have them enabled for a build variant.
+## Community and Docs
 
-## Secondary Functions
+- [Wiki](../../wiki) for more details on language tag support and plugin configuration
+- [Discussions](../../discussions) for project roadmap, ideas, Q&A, and polls
+- [Issues](../../issues) for found bugs and reporting specific locale issues
 
-A `SupportedLocales.kt` source file is generated with maps of the locales your app is set to support. It includes language tags, langauge names (both exonyms and endonyms provided), and functions to get them. This data is intended to assist with building an in-app language selector, but I'd love to hear about other uses.
+## Setup
 
-## How to Use
+### Plugin Dependency Management
 
 ```kotlin
-// settings.gradle.kts (project settings)
+// File - settings.gradle.kts (project settings)
+
 dependencyResolutionManagement {
-    // should already have this section, don't modify
+    // don't modify
 }
 
 // add this if you don't have it
@@ -30,22 +35,24 @@ pluginManagement {
 }
 ```
 
-The `resourceConfigurations` property below is a list of explicitly configured resource types to be added to your project. Often, it's used to prevent building your project with extra resources you don't need (like tons of locale resources you don't support coming from dependencies you didn't know hda them.)
+### Project Locale Configuration
 
-Since it's good practice to specify resources in use, this plugin utilizes the same `resourceConfigurations` list in during generation. Just add your supported locales into this list, and the plugin will handle the rest!
+The `resourceConfigurations` property is a list of explicitly configured resource types to be added to your project. Often, it's used to prevent building your project with extra resources you don't need (like locale resources you don't support coming from project dependencies)
+
+Since it's good practice to specify resources in use, this plugin utilizes the same `resourceConfigurations` list to guide its resource generation. Add your supported locales into this list, and the plugin will handle the rest!
 
 ```kotlin
-// build.gradle.kts (application level)
+// File -  build.gradle.kts (app module)
+
 plugins {
     //...
-    id("com.mermake.locale-resource-generator") version "0.1" // check release page for latest version
+    id("com.mermake.locale-resource-generator") version "{{latest}}"
 }
 
 android {
     //...
     defaultConfig {
         //...
-    
         resourceConfigurations.addAll(
             listOf(
                 "en",
@@ -60,16 +67,17 @@ android {
     }
 }
 ```
-> Notice the different formats of the language tags below. They're not _quite_ Unicode tags, but it's okay. Android recognizes both the `xx-rXX` and `bxx+XX+` formats ([more info on locale resolution here](https://developer.android.com/guide/topics/resources/multilingual-support#postN)). This is important to know since some language tags like `de-DE` would cause a build failure and the `b+` format is required. ([BCP-47 spec](https://cldr.unicode.org/development/development-process/design-proposals/bcp47-syntax-mapping)) In any case, the plugin converts everything to Unicode-friendly tags since that what we need in the manifest and source code anyway.
+> See the wiki page on [Locales and Android Support](../../wiki/Locales-and-Android-Support) for details on supported language tags.
+
+### Manifest Configuration
 
 ```xml
 <!-- AndroidManifest.xml -->
 <application>
-    <!-- Include this line in your application tag. The file is generated when you build and resolves without issue. -->
+    <!-- Include this line in your application tag. The file is generated when you build or run the locale config task. -->
     android:localeConfig="@xml/locale_config"
-    
-    
-    <!-- Add this for supporting lower than API 33 (see linked Android docs for more details) -->
+  
+    <!-- Add this for supporting lower than API 33 (see Android docs for more info) -->
     <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
@@ -81,16 +89,9 @@ android {
 </application>
 ```
 
-The plugin runs automatically as part of your normal builds. You can also run individual tasks:
-- `generateLocaleConfig[Debug|Release|etc]` - generates `locale_config.xml` file for per-app language support
+## Gradle Tasks
 
-## Glossary
-
-- **Endonym** - A name used by a group or category of people to refer to themselves or their language, as opposed to a name given to them by other groups.
-    - In Germany (Deutcshland), the 'German' language is written as 'Deutsche'
-    - In Japan (日本), the 'Japanese' language is written as '日本語'
-
-
-- **Exonym** - Opposite of exonym. A name used to refer to a language or people that is not what they use to refer to themsleves their own language. Many languages have different names for each language.
-    - 'French' in Japanese is 'フランス語'
-    - 'French' in German is 'Französisch'
+The plugin runs its tasks automatically before the `preBuild` step of your normal builds. A variant task is configured for each of your project's build variants. (debug, release, wumbo, etc.)
+- `generateLocaleConfig[Variant]` - generates `locale_config.xml` resource file
+- `generateSupportedLocales[Variant]` - generates `SupportedLocales.kt` class
+- `soakConfiguredLocales[Variant]` - creates the intermediate files with supported locale information that is used in the other tasks
