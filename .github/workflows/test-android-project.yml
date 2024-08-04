@@ -1,0 +1,63 @@
+name: Test Android Project
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  run-android-test:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup Gradle for plugin
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 7.5
+
+      - name: Setup Gradle for Android
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.6
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+
+#      # Step 4: Set up Android SDK
+#      - name: Set up Android SDK
+#        uses: android-actions/setup-android@v2
+#        with:
+#          api-level: 30
+#          build-tools: 30.0.3
+
+      - name: Check out plugin project repo
+        uses: actions/checkout@v4
+        with:
+          path: plugin-repo
+
+      - name: Publish plugin to Maven Local
+        run: |
+          cd plugin-repo
+          ./gradlew publishToMavenLocal
+          cd -
+
+      - name: Checkout Android project repo
+        uses: actions/checkout@v4
+        with:
+          repository: aormsby/loc-plugin-test-project
+          path: android-repo
+
+#      - name: Run Android unit tests
+#        run: cd android-repo && ./gradlew test
+
+      - name: Start ADB server for instrumented tests
+        run: adb start-server
+
+      - name: Run Android instrumented tests
+        run: |
+          cd android-repo
+          ./gradlew connectedDebugAndroidTest
+          cd -
