@@ -8,6 +8,8 @@ jobs:
   run-pr-tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out plugin repo
+        uses: actions/checkout@v4
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -21,9 +23,6 @@ jobs:
           distribution: 'corretto'
           java-version: '11'
           cache: 'gradle'
-
-      - name: Check out plugin repo
-        uses: actions/checkout@v4
 
       - name: Build and run tests
         run: ./gradlew build
